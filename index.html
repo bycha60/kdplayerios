@@ -11,7 +11,15 @@
 <link rel="icon" href="icon-192.png">
 <title>KD Player</title>
 <style>
-*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent;outline:none}
+*{
+  box-sizing:border-box;
+  margin:0;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+  outline:none;
+}
 :root{
   --bg:#08090c;
   --surf:#11131a;
@@ -114,10 +122,10 @@ svg.f{fill:currentColor}
   82%,100%{transform:translateX(calc(-100% + var(--mq-box,260px)))}
 }
 
-/* anlaşılır hareketli dalga spektrumu */
-.wave{position:relative;height:82px;touch-action:none;cursor:pointer;margin-top:2px;border-radius:16px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);overflow:hidden}
+/* normal sarı ve kırmızı dalga spektrumu */
+.wave{position:relative;height:78px;touch-action:none;cursor:pointer;margin-top:2px;border-radius:16px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);overflow:hidden}
 #waveCanvas{width:100%;height:100%;display:block}
-.seek-badge{position:absolute;top:6px;transform:translateX(-50%);background:var(--acc);color:#0c0d12;font-size:11px;font-weight:800;padding:2px 7px;border-radius:99px;pointer-events:none;opacity:0;transition:opacity .15s;box-shadow:0 4px 12px rgba(0,0,0,.6)}
+.seek-badge{position:absolute;top:6px;transform:translateX(-50%);background:var(--acc);color:#090506;font-size:11px;font-weight:800;padding:2px 7px;border-radius:99px;pointer-events:none;opacity:0;transition:opacity .15s;box-shadow:0 4px 12px rgba(0,0,0,.6)}
 .wave.seeking .seek-badge{opacity:1}
 .tm{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--mut);margin-top:-4px}
 
@@ -129,12 +137,11 @@ svg.f{fill:currentColor}
 .ctl .sm{width:50px;height:50px;color:#e5e7eb}
 .ctl .sm svg{width:36px;height:36px}
 .bot{display:flex;justify-content:space-between;align-items:center;color:var(--mut);padding:0 4px}
-.bot .eqbtn,.bot .fxbtn{width:48px;height:44px;border-radius:14px;color:var(--acc);transition:background .2s,color .2s}
+.bot .eqbtn,.bot .fxbtn{width:48px;height:44px;border-radius:14px;color:var(--acc);transition:background .2s,color .2s,opacity .2s}
 .bot .eqbtn:active,.bot .fxbtn:active{background:var(--acc-soft)}
 .bot .eqbtn.off{color:var(--mut);opacity:.6}
-.bot .fxbtn.on{background:var(--acc-soft);color:var(--acc)}
-.bot .fxbtn.off{color:var(--mut);opacity:.75}
-.swipe-hint{font-size:11px;font-weight:600;color:var(--mut);letter-spacing:.2px;display:flex;align-items:center;gap:4px;opacity:.75}
+.bot .fxbtn.on{background:var(--acc-soft);color:var(--acc);opacity:1}
+.bot .fxbtn.off{background:none;color:var(--mut);opacity:.65}
 
 /* sağdan sola açılan speed / pitch / reverb çekmecesi */
 #fxDrawer{
@@ -144,7 +151,8 @@ svg.f{fill:currentColor}
   transform:translateX(100%);visibility:hidden;
   transition:transform .38s cubic-bezier(.2,.85,.2,1),visibility 0s .38s;
   display:flex;flex-direction:column;justify-content:space-between;
-  padding:calc(16px + env(safe-area-inset-top)) 20px calc(26px + env(safe-area-inset-bottom));
+  padding:calc(16px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));
+  overflow-y:auto;
 }
 #fxDrawer.open{transform:translateX(0);visibility:visible;transition-delay:0s}
 #fxDrawer.dragging{transition:none!important}
@@ -157,29 +165,37 @@ svg.f{fill:currentColor}
 .fxd-back:active{background:var(--acc-soft);color:var(--acc)}
 .fxd-sub{font-size:12.5px;color:var(--mut);margin-top:6px}
 
-#fx{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}
+#fx{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0}
 .fx{
-  --c:var(--acc);position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;
-  padding:16px 6px 14px;border-radius:22px;background:var(--card);
+  --c:var(--acc);position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;
+  padding:14px 6px 12px;border-radius:22px;background:var(--card);
   border:1px solid #ffffff10;transition:border-color .25s,box-shadow .25s,opacity .25s;
 }
 .fx.active{border-color:rgba(255,193,7,.36);box-shadow:0 8px 24px -8px rgba(255,193,7,.22)}
 .fx-label{font-size:13px;font-weight:700;letter-spacing:.2px;color:var(--txt);text-align:center}
-.knob{position:relative;width:82px;height:82px;touch-action:none;cursor:ns-resize;outline:none;border-radius:50%}
+.knob{position:relative;width:78px;height:78px;touch-action:none;cursor:ns-resize;outline:none;border-radius:50%}
 .knob svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .kt,.kp{fill:none;stroke-width:5;stroke-linecap:round;stroke-dasharray:122.52 163.36}
 .kt{stroke:#ffffff14}
 .kp{stroke:var(--c);stroke-dasharray:0 163.36;filter:drop-shadow(0 0 6px rgba(255,193,7,.45))}
-.dial{position:absolute;inset:14px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#272b38,#0c0e14 75%);box-shadow:inset 0 1px 2px rgba(255,255,255,.14),0 6px 14px rgba(0,0,0,.75);transition:transform .05s linear}
+.dial{position:absolute;inset:13px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#272b38,#0c0e14 75%);box-shadow:inset 0 1px 2px rgba(255,255,255,.14),0 6px 14px rgba(0,0,0,.75);transition:transform .05s linear}
 .dial i{position:absolute;left:50%;top:4px;width:3px;height:10px;margin-left:-1.5px;border-radius:3px;background:var(--acc);box-shadow:0 0 6px rgba(255,193,7,.6)}
-.fx-val{font:700 13px ui-monospace,Menlo,Consolas,monospace;color:var(--mut);min-height:18px;text-align:center}
+.fx-val{font:700 12.5px ui-monospace,Menlo,Consolas,monospace;color:var(--mut);min-height:17px;text-align:center}
 .fx.active .fx-val{color:var(--acc)}
-.fx.off .knob,.fx.off .fx-val,.fx.off .fx-label{opacity:.28;pointer-events:none}
+.fx-num{
+  width:100%;max-width:76px;height:30px;padding:0 6px;border-radius:10px;
+  border:1px solid #ffffff18;background:var(--surf);color:#fff;
+  font:700 12.5px ui-monospace,Menlo,Consolas,monospace;text-align:center;
+  -webkit-user-select:text;user-select:text;
+}
+.fx-num:focus{border-color:var(--acc)}
+.fx-num::-webkit-inner-spin-button,.fx-num::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.fx.off .knob,.fx.off .fx-val,.fx.off .fx-label,.fx.off .fx-num{opacity:.28;pointer-events:none}
 .sw{position:relative;width:42px;height:24px;border-radius:99px;background:#ffffff24;transition:background .25s;padding:0}
 .sw::before{content:'';position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .28s cubic-bezier(.3,1.5,.5,1)}
 .sw.on{background:var(--acc)}
 .sw.on::before{transform:translateX(18px);background:#111}
-.fxd-note{font-size:12px;color:var(--mut);text-align:center;line-height:1.5}
+.fxd-note{font-size:12px;color:var(--mut);text-align:center;line-height:1.5;margin-top:8px}
 .fxd-note b{color:var(--txt)}
 
 /* ekolayzer */
@@ -297,8 +313,7 @@ svg.f{fill:currentColor}
     </div>
     <div class="bot">
       <button class="eqbtn" data-a="openEQ" aria-label="Ekolayzer"><svg class="i"><use href="#i-eq"/></svg></button>
-      <span class="swipe-hint">← Speed / Pitch / Reverb</span>
-      <button class="fxbtn" id="fxToggleBtn" data-a="toggleFX" aria-label="Efektler"><svg class="i"><use href="#i-sliders"/></svg></button>
+      <button class="fxbtn off" id="fxToggleBtn" data-a="toggleFX" aria-label="Efektler"><svg class="i"><use href="#i-sliders"/></svg></button>
     </div>
   </div>
 </section>
@@ -312,10 +327,10 @@ svg.f{fill:currentColor}
         <button class="fxd-back" data-a="closeFX" aria-label="Geri dön"><svg class="i"><use href="#i-right"/></svg></button>
       </div>
     </div>
-    <p class="fxd-sub">Ekranı sağa kaydırarak veya ok tuşuyla oynatıcıya dönebilirsin.</p>
+    <p class="fxd-sub">Düğmeyi sürükle veya alt kutuya sayı yaz. Sağa kaydırarak dönebilirsin.</p>
     <div id="fx"></div>
   </div>
-  <p class="fxd-note">Düğmeyi <b>yukarı/aşağı sürükle</b> · <b>Çift dokun</b> = varsayılan · Alt anahtar efekti açar/kapatır.</p>
+  <p class="fxd-note"><b>Speed:</b> 0.50–4.00 · <b>Pitch:</b> -1200–1200 ct · <b>Reverb:</b> 0–100% · <b>Çift dokun</b> = varsayılan</p>
 </aside>
 
 <section id="eq" class="scr ov sa">
@@ -346,10 +361,15 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const FREQ=['31','62','125','250','500','1K','2K','4K','8K','16K'],HZ=[31,62,125,250,500,1000,2000,4000,8000,16000];
 const PRE={'Özel':['eq'],'Bas güçlendirici':['vol',[6,5,4,2,0,0,0,0,0,0]],'Vokal güçlendirici':['mic',[-2,-1,0,2,4,4,3,1,0,-1]],'Tiz güçlendirici':['zap',[0,0,0,0,0,1,2,4,5,6]],'Normal':['smile',[0,0,0,0,0,0,0,0,0,0]],'Pop':['note',[-1,1,3,4,3,0,-1,-1,1,2]],'Rock':['disc',[4,3,1,-1,-2,0,2,3,4,4]],'Caz':['moon',[3,2,1,2,-2,-2,0,1,2,3]]};
 
+/* iOS uzun basma menüsü / seçimi engelleme */
+document.addEventListener('contextmenu',e=>{
+  if(!e.target.closest('input,textarea'))e.preventDefault();
+},{passive:false});
+
 const FX_P={
-  speed:  {label:'Speed',  min:0.5,   max:4,    step:0.01, def:1,    neutral:1, fmt:v=>v.toFixed(2)+'x'},
-  pitch:  {label:'Pitch',  min:-1200, max:1200, step:10,   def:0,    neutral:0, fmt:v=>(v>0?'+':'')+Math.round(v)+' ct'},
-  reverb: {label:'Reverb', min:0,     max:1,    step:0.01, def:0.3,  neutral:0, fmt:v=>Math.round(v*100)+'%'}
+  speed:  {label:'Speed',  min:0.5,   max:4,    step:0.01, def:1,    neutral:1, fmt:v=>v.toFixed(2)+'x', inputVal:v=>v.toFixed(2)},
+  pitch:  {label:'Pitch',  min:-1200, max:1200, step:10,   def:0,    neutral:0, fmt:v=>(v>0?'+':'')+Math.round(v)+' ct', inputVal:v=>String(Math.round(v))},
+  reverb: {label:'Reverb', min:0,     max:1,    step:0.01, def:0.3,  neutral:0, fmt:v=>Math.round(v*100)+'%', inputVal:v=>String(Math.round(v*100))}
 };
 const FX_ORDER=['speed','pitch','reverb'];
 
@@ -363,7 +383,7 @@ S.fxVals=Object.assign({speed:1,pitch:0,reverb:0.3},S.fxVals);
 S.fxOn=Object.assign({speed:true,pitch:true,reverb:true},S.fxOn);
 const save=()=>localStorage.kdp=JSON.stringify(S);
 
-let L=[],byId={},Q=[],hist=[],cur=null,query='',url=null;
+let L=[],byId={},cur=null,query='',url=null;
 const A=new Audio();A.preload='auto';
 
 function getEffFX(){
@@ -381,8 +401,8 @@ const DB=new Promise((res,rej)=>{const q=indexedDB.open('kdplayer',1);q.onupgrad
 const tx=async(m,f)=>{const d=await DB;return new Promise((res,rej)=>{const t=d.transaction('s',m),r=f(t.objectStore('s'));t.oncomplete=()=>res(r.result);t.onerror=rej})};
 const put=r=>tx('readwrite',s=>s.put(r)),del=id=>tx('readwrite',s=>s.delete(id));
 
-/* ses motoru + 10 bantlı ekolayzer + reverb + canlı spektrum analyser */
-let ctx,flt=[],dryGain,wetGain,convolver,analyser,freqData;
+/* ses motoru + 10 bantlı ekolayzer + reverb */
+let ctx,flt=[],dryGain,wetGain,convolver;
 function makeIR(c,dur=2.4,decay=2.2){
   const len=Math.max(1,Math.floor(c.sampleRate*dur));
   const ir=c.createBuffer(2,len,c.sampleRate);
@@ -416,16 +436,8 @@ function initAudio(){
   p.connect(convolver);
   convolver.connect(wetGain);
 
-  const mix=ctx.createGain();
-  dryGain.connect(mix);
-  wetGain.connect(mix);
-
-  analyser=ctx.createAnalyser();
-  analyser.fftSize=256;
-  analyser.smoothingTimeConstant=0.8;
-  freqData=new Uint8Array(analyser.frequencyBinCount);
-  mix.connect(analyser);
-  analyser.connect(ctx.destination);
+  dryGain.connect(ctx.destination);
+  wetGain.connect(ctx.destination);
 
   applyEQ();
   applyFX();
@@ -540,11 +552,15 @@ function artHTML(s){
   return`<div class="ph" style="background:linear-gradient(135deg,#252936,#141720);color:#ffc107">${esc([...s.title][0]||'♪').toUpperCase()}</div>`;
 }
 
-/* liste */
+/* liste ve sıralı geçiş */
 function view(){
   let a=L.filter(s=>!query||(s.title+' '+s.artist+' '+s.album).toLowerCase().includes(query));
   const k=S.sort;
   return a.sort((x,y)=>k==='added'?y.added-x.added:(x[k]||'').localeCompare(y[k]||'','tr'));
+}
+function getOrderedIds(){
+  const v=view();
+  return v.length?v.map(x=>x.id):L.map(x=>x.id);
 }
 function refresh(anim){
   const v=view(),el=$('#list');
@@ -555,12 +571,11 @@ function refresh(anim){
 }
 
 /* çalma */
-async function play(id,fromView=true){
+async function play(id){
   const s=byId[id];if(!s)return;
   initAudio();
   if(ctx.state==='suspended')ctx.resume();
-  if(fromView)Q=view().map(x=>x.id);
-  cur=id;hist.push(id);if(hist.length>60)hist.shift();
+  cur=id;
   if(url)URL.revokeObjectURL(url);
   url=URL.createObjectURL(s.blob);
   A.src=url;
@@ -569,24 +584,31 @@ async function play(id,fromView=true){
   A.play().catch(()=>{});
 }
 function next(auto){
-  if(!Q.length)return;
+  const ids=getOrderedIds();
+  if(!ids.length)return;
   if(auto&&S.repeat===2){A.currentTime=0;A.play();return}
-  let n;
-  if(S.shuffle&&Q.length>1){do n=Q[Math.random()*Q.length|0];while(n===cur)}
-  else{let i=Q.indexOf(cur)+1;if(i>=Q.length){if(S.repeat===0&&auto){A.pause();A.currentTime=0;return}i=0}n=Q[i]}
-  play(n,false);
+  const idx=ids.indexOf(cur);
+  let nextIdx=idx+1;
+  if(nextIdx>=ids.length){
+    if(S.repeat===0&&auto){A.pause();A.currentTime=0;return}
+    nextIdx=0;
+  }
+  play(ids[nextIdx]);
 }
 function prev(){
+  const ids=getOrderedIds();
+  if(!ids.length)return;
   if(A.currentTime>3){A.currentTime=0;prog();return}
-  hist.pop();const p=hist.pop();
-  if(p&&byId[p])play(p,false);else if(Q.length){const i=Q.indexOf(cur);play(Q[(i-1+Q.length)%Q.length],false)}
+  const idx=ids.indexOf(cur);
+  const prevIdx=idx<=0?ids.length-1:idx-1;
+  play(ids[prevIdx]);
 }
 const toggle=()=>{if(!cur)return;initAudio();if(ctx.state==='suspended')ctx.resume();A.paused?A.play():A.pause()};
 
-/* anlaşılır hareketli dalga spektrumu (canvas) + anında seek */
-const PK={},WAVE_N=64;
+/* normal sarı ve kırmızı dalga spektrumu (canvas) + anında seek */
+const PK={},WAVE_N=72;
 const waveCanvas=$('#waveCanvas'),wctx=waveCanvas.getContext('2d');
-let basePeaks=Array(WAVE_N).fill(.25),wavePhase=0,waveRaf=null;
+let basePeaks=Array(WAVE_N).fill(.35);
 
 function resizeWave(){
   const r=waveCanvas.parentElement.getBoundingClientRect();
@@ -594,6 +616,7 @@ function resizeWave(){
   waveCanvas.width=Math.max(1,Math.floor(r.width*dpr));
   waveCanvas.height=Math.max(1,Math.floor(r.height*dpr));
   wctx.setTransform(dpr,0,0,dpr,0,0);
+  drawWaveFrame();
 }
 addEventListener('resize',resizeWave);
 
@@ -601,12 +624,13 @@ function pseudo(s){
   const h=hue(s)/57;
   return Array.from({length:WAVE_N},(_,i)=>{
     const env=Math.sin((i/(WAVE_N-1))*Math.PI);
-    return(.18+.65*Math.abs(Math.sin(i*.28+h)*Math.cos(i*.11+h*2)))*(.45+.55*env);
+    return(.2+.65*Math.abs(Math.sin(i*.28+h)*Math.cos(i*.11+h*2)))*(.45+.55*env);
   });
 }
 
 async function peaks(s){
   basePeaks=PK[s.id]||pseudo(s);
+  drawWaveFrame();
   if(PK[s.id]||s.blob.size>30e6)return;
   try{
     const b=await new OfflineAudioContext(1,1,44100).decodeAudioData(await s.blob.arrayBuffer());
@@ -617,8 +641,11 @@ async function peaks(s){
       o.push(m);
     }
     const mx=Math.max(...o)||1;
-    PK[s.id]=o.map(v=>.14+.86*Math.pow(v/mx,.78));
-    if(cur===s.id)basePeaks=PK[s.id];
+    PK[s.id]=o.map(v=>.16+.84*Math.pow(v/mx,.78));
+    if(cur===s.id){
+      basePeaks=PK[s.id];
+      drawWaveFrame();
+    }
   }catch(e){}
 }
 
@@ -628,98 +655,61 @@ function drawWaveFrame(){
   if(w<=2||h<=2)return;
   wctx.clearRect(0,0,w,h);
 
-  const playing=!A.paused&&!!cur;
-  if(playing)wavePhase+=0.075;
-  if(analyser&&freqData&&playing)analyser.getByteFrequencyData(freqData);
-
   const d=A.duration||byId[cur]?.dur||0;
   const t=seeking?(seekRatio*d):A.currentTime;
   const progRatio=d?Math.max(0,Math.min(1,t/d)):0;
   const splitX=progRatio*w;
-
   const cy=h*0.5;
-  const lines=7;
 
-  if(splitX>0){
-    const bgGrad=wctx.createLinearGradient(0,0,splitX,0);
-    bgGrad.addColorStop(0,'rgba(255,193,7,0.02)');
-    bgGrad.addColorStop(1,'rgba(255,193,7,0.09)');
-    wctx.fillStyle=bgGrad;
-    wctx.fillRect(0,0,splitX,h);
-  }
+  const padX=10;
+  const usableW=Math.max(10,w-padX*2);
+  const step=usableW/WAVE_N;
+  const barW=Math.max(2,step*0.58);
 
-  for(let l=0;l<lines;l++){
-    const lNorm=(l/(lines-1))-0.5;
-    const lScale=1 - Math.abs(lNorm)*0.72;
+  // çalınan ve kalan kısımlar için sarı-kırmızı renk geçişleri
+  const activeGrad=wctx.createLinearGradient(padX,0,w-padX,0);
+  activeGrad.addColorStop(0,'#dc2626');
+  activeGrad.addColorStop(0.5,'#ef4444');
+  activeGrad.addColorStop(1,'#ffc107');
+
+  const dimGrad=wctx.createLinearGradient(padX,0,w-padX,0);
+  dimGrad.addColorStop(0,'rgba(220,38,38,0.24)');
+  dimGrad.addColorStop(1,'rgba(255,193,7,0.22)');
+
+  for(let i=0;i<WAVE_N;i++){
+    const x=padX + i*step + (step-barW)*0.5;
+    const cx=x+barW*0.5;
+    const pk=basePeaks[i]||0.25;
+    const barH=Math.max(5,pk*(h*0.76));
+    const y=cy - barH*0.5;
+    const r=Math.min(barW*0.5,3);
+
+    wctx.fillStyle=cx<=splitX?activeGrad:dimGrad;
     wctx.beginPath();
-
-    for(let x=0;x<=w;x+=3){
-      const u=x/w;
-      const env=Math.pow(Math.sin(u*Math.PI),1.25);
-      const idx=Math.min(WAVE_N-1,Math.floor(u*(WAVE_N-1)));
-      const pk=basePeaks[idx]||0.25;
-
-      let live=0.15;
-      if(playing&&freqData){
-        const fBin=Math.min(freqData.length-1,Math.floor(u*(freqData.length*0.7)));
-        live=freqData[fBin]/255;
-      }
-
-      const amp=playing
-        ?(h*0.35*env*(0.35*pk + 0.75*live)*lScale)
-        :(h*0.20*env*pk*lScale);
-
-      const wave1=Math.sin(u*9.5 - wavePhase + l*0.42);
-      const wave2=Math.cos(u*17.0 + wavePhase*0.7 - l*0.25)*0.35;
-      const y=cy + (wave1 + wave2)*amp + lNorm*(playing?9:4)*env;
-
-      if(x===0)wctx.moveTo(x,y);
-      else wctx.lineTo(x,y);
-    }
-
-    const isCenter=l===Math.floor(lines/2);
-    if(isCenter){
-      const grad=wctx.createLinearGradient(0,0,w,0);
-      grad.addColorStop(0,'rgba(255,193,7,0.75)');
-      grad.addColorStop(Math.max(0.01,progRatio),'rgba(255,193,7,1)');
-      grad.addColorStop(Math.min(0.99,progRatio+0.004),'rgba(255,255,255,0.22)');
-      grad.addColorStop(1,'rgba(255,255,255,0.14)');
-      wctx.strokeStyle=grad;
-      wctx.lineWidth=seeking?2.8:2.2;
-    }else{
-      const alpha=playing?(0.14 + 0.16*lScale):(0.07 + 0.07*lScale);
-      wctx.strokeStyle=`rgba(255,193,7,${alpha.toFixed(3)})`;
-      wctx.lineWidth=1.1;
-    }
-    wctx.stroke();
+    if(wctx.roundRect)wctx.roundRect(x,y,barW,barH,r);
+    else wctx.rect(x,y,barW,barH);
+    wctx.fill();
   }
 
+  // ilerleme çizgisi
   if(d>0||seeking){
     wctx.save();
-    wctx.strokeStyle=seeking?'#fff':'rgba(255,193,7,0.9)';
-    wctx.lineWidth=seeking?2.4:1.6;
+    wctx.strokeStyle=seeking?'#fff':'#ffc107';
+    wctx.lineWidth=seeking?2.2:1.6;
     wctx.beginPath();
     wctx.moveTo(splitX,6);
     wctx.lineTo(splitX,h-6);
     wctx.stroke();
 
-    wctx.fillStyle='#ffc107';
+    wctx.fillStyle='#ef4444';
     wctx.beginPath();
-    wctx.arc(splitX,cy,seeking?6.5:4.5,0,Math.PI*2);
+    wctx.arc(splitX,cy,seeking?6:4.2,0,Math.PI*2);
     wctx.fill();
     wctx.lineWidth=2;
-    wctx.strokeStyle='#08090c';
+    wctx.strokeStyle='#ffc107';
     wctx.stroke();
     wctx.restore();
   }
-}
-
-function startWaveLoop(){
-  if(waveRaf)return;
-  (function tick(){
-    drawWaveFrame();
-    waveRaf=requestAnimationFrame(tick);
-  })();
 }
 
 let ls=-1,lp=false,seeking=false,seekRatio=0;
@@ -731,6 +721,7 @@ function prog(){
   const t=rawT/sp;
   const ratio=rawD?Math.max(0,Math.min(1,rawT/rawD)):0;
   document.documentElement.style.setProperty('--p',ratio);
+  drawWaveFrame();
   const sec=Math.floor(t);
   if(sec!==ls||seeking){
     ls=sec;
@@ -772,7 +763,6 @@ function commitSeek(ratio){
   }catch(err){A.currentTime=target}
   ls=-1;
   prog();
-  drawWaveFrame();
 }
 w.onpointerdown=e=>{
   e.stopPropagation();
@@ -781,11 +771,9 @@ w.onpointerdown=e=>{
   w.classList.add('seeking');
   seekRatio=calcRatio(e);
   prog();
-  drawWaveFrame();
   w.onpointermove=ev=>{
     seekRatio=calcRatio(ev);
     prog();
-    drawWaveFrame();
   };
 };
 w.onpointerup=w.onpointercancel=e=>{
@@ -851,8 +839,12 @@ function ui(){
   $('#eq').classList.toggle('off',!S.eqOn);
   $$('.rb').forEach(e=>{e.classList.toggle('on',S.repeat>0);e.dataset.r=S.repeat});
   $('.eqbtn').classList.toggle('off',!S.eqOn);
-  const anyFX=FX_ORDER.some(k=>S.fxOn[k]&&Math.abs(S.fxVals[k]-FX_P[k].neutral)>1e-6);
-  $('#fxToggleBtn').classList.toggle('on',anyFX);
+
+  const anyFX=FX_ORDER.some(k=>!!S.fxOn[k] && Math.abs(S.fxVals[k]-FX_P[k].neutral)>1e-4);
+  const fxBtn=$('#fxToggleBtn');
+  fxBtn.classList.toggle('on',anyFX);
+  fxBtn.classList.toggle('off',!anyFX);
+
   if(!s)return;
   const u=coverUrl(s);
   $$('.m-art').forEach(e=>e.innerHTML=artHTML(s));
@@ -867,7 +859,7 @@ function ui(){
     });
   }
 }
-A.onplay=()=>{ui();loop();startWaveLoop()};
+A.onplay=()=>{ui();loop()};
 A.onpause=()=>{ui();drawWaveFrame()};
 A.onended=()=>next(true);
 A.onloadedmetadata=()=>{applyFX();prog()};
@@ -877,7 +869,7 @@ if('mediaSession' in navigator){
   [['play',()=>A.play()],['pause',()=>A.pause()],['previoustrack',prev],['nexttrack',()=>next()],['seekto',e=>{A.currentTime=e.seekTime;prog()}]].forEach(([k,f])=>{try{m.setActionHandler(k,f)}catch(e){}});
 }
 
-/* speed / pitch / reverb düğmeleri (knobs) */
+/* speed / pitch / reverb düğmeleri (knobs) + sayısal giriş */
 function paintKnob(id){
   const p=FX_P[id],v=S.fxVals[id],f=(v-p.min)/(p.max-p.min);
   const m=$('#mod-'+id);
@@ -885,19 +877,21 @@ function paintKnob(id){
   m.querySelector('.kp').style.strokeDasharray=`${Math.max(.01,f*122.52).toFixed(2)} 163.36`;
   m.querySelector('.dial').style.transform=`rotate(${f*270-135}deg)`;
   $('#v-'+id).textContent=p.fmt(v);
-  m.classList.toggle('active',S.fxOn[id]&&Math.abs(v-p.neutral)>1e-6);
+  const numEl=$('#num-'+id);
+  if(numEl&&document.activeElement!==numEl)numEl.value=p.inputVal(v);
+  m.classList.toggle('active',!!S.fxOn[id]&&Math.abs(v-p.neutral)>1e-4);
   m.classList.toggle('off',!S.fxOn[id]);
   const sw=$('#sw-'+id);
-  sw.classList.toggle('on',S.fxOn[id]);
-  sw.setAttribute('aria-pressed',S.fxOn[id]);
+  sw.classList.toggle('on',!!S.fxOn[id]);
+  sw.setAttribute('aria-pressed',!!S.fxOn[id]);
   m.querySelector('.knob').setAttribute('aria-valuenow',v);
   ui();
 }
 function setFXVal(id,v){
   const p=FX_P[id];
+  if(!isFinite(v))return;
   v=clamp(Math.round(v/p.step)*p.step,p.min,p.max);
   v=+v.toFixed(4);
-  if(v===S.fxVals[id])return;
   S.fxVals[id]=v;
   paintKnob(id);
   applyFX();
@@ -911,6 +905,9 @@ function buildFX(){
     const m=document.createElement('div');
     m.className='fx';
     m.id='mod-'+id;
+    const stepAttr=id==='reverb'?'1':p.step;
+    const minAttr=id==='reverb'?'0':p.min;
+    const maxAttr=id==='reverb'?'100':p.max;
     m.innerHTML=
       `<div class="fx-label">${p.label}</div>
        <div class="knob" tabindex="0" role="slider" aria-label="${p.label}" aria-valuemin="${p.min}" aria-valuemax="${p.max}" aria-valuenow="${S.fxVals[id]}">
@@ -921,7 +918,8 @@ function buildFX(){
          <div class="dial"><i></i></div>
        </div>
        <div class="fx-val" id="v-${id}"></div>
-       <button class="sw on" id="sw-${id}" type="button" aria-label="${p.label} aç/kapat"></button>`;
+       <input class="fx-num" id="num-${id}" type="number" inputmode="decimal" step="${stepAttr}" min="${minAttr}" max="${maxAttr}" aria-label="${p.label} sayısal değer">
+       <button class="sw" id="sw-${id}" type="button" aria-label="${p.label} aç/kapat"></button>`;
     grid.appendChild(m);
 
     const k=m.querySelector('.knob');
@@ -961,6 +959,20 @@ function buildFX(){
       const s=p.step*(e.shiftKey?10:1);
       if(e.key==='ArrowUp'||e.key==='ArrowRight'){setFXVal(id,S.fxVals[id]+s);e.preventDefault();}
       if(e.key==='ArrowDown'||e.key==='ArrowLeft'){setFXVal(id,S.fxVals[id]-s);e.preventDefault();}
+    });
+
+    const numEl=$('#num-'+id);
+    const applyNumInput=()=>{
+      if(!S.fxOn[id])return;
+      initAudio();
+      let raw=parseFloat(numEl.value);
+      if(!isFinite(raw)){paintKnob(id);return;}
+      if(id==='reverb')raw=clamp(raw,0,100)/100;
+      setFXVal(id,raw);
+    };
+    numEl.addEventListener('change',applyNumInput);
+    numEl.addEventListener('keydown',e=>{
+      if(e.key==='Enter'){applyNumInput();numEl.blur();}
     });
 
     $('#sw-'+id).addEventListener('click',e=>{
@@ -1065,7 +1077,7 @@ addEventListener('popstate',()=>{
 /* Now Playing üzerinde aşağı kapatma + sağdan sola FX açma */
 (function bindNPSwipes(){
   const npEl=$('#np');
-  let sx=0,sy=0,dx=0,dy=0,mode=null; // 'down' | 'left' | null
+  let sx=0,sy=0,dx=0,dy=0,mode=null;
 
   npEl.addEventListener('touchstart',e=>{
     if(fxOpen)return;
@@ -1133,7 +1145,7 @@ addEventListener('popstate',()=>{
   const dr=$('#fxDrawer');
   let sx=0,sy=0,dx=0,tracking=false;
   dr.addEventListener('touchstart',e=>{
-    if(e.target.closest('.knob,.sw,.fxd-rst,.fxd-back'))return;
+    if(e.target.closest('.knob,.sw,.fx-num,.fxd-rst,.fxd-back'))return;
     sx=e.touches[0].clientX;
     sy=e.touches[0].clientY;
     dx=0;tracking=true;
@@ -1270,7 +1282,7 @@ const A_={
   slp(el){const m=+el.dataset.m;setSleep(m);closeSheet()},
   async delCur(){
     const s=cs();if(!s||!confirm(`"${s.title}" silinsin mi?`))return;closeSheet();
-    A.pause();A.removeAttribute('src');await del(s.id);L=L.filter(x=>x!==s);delete byId[s.id];Q=Q.filter(x=>x!==s.id);cur=null;S.last=null;save();
+    A.pause();A.removeAttribute('src');await del(s.id);L=L.filter(x=>x!==s);delete byId[s.id];cur=null;S.last=null;save();
     closeFX();if(stack.includes('eq'))closeV();if(stack.includes('np'))setTimeout(closeV,50);ui();refresh();toast('Şarkı silindi');
   },
   async set(){
@@ -1292,7 +1304,7 @@ const A_={
   },
   add2(){closeSheet();$('#fi').click()},
   async clear(){if(!L.length||!confirm('Tüm şarkılar kitaplıktan silinsin mi?'))return;closeSheet();A.pause();A.removeAttribute('src');
-    await tx('readwrite',s=>s.clear());L=[];byId={};Q=[];cur=null;S.last=null;save();closeFX();if(stack.includes('eq'))closeV();if(stack.includes('np'))setTimeout(closeV,50);ui();refresh();toast('Kitaplık temizlendi')}
+    await tx('readwrite',s=>s.clear());L=[];byId={};cur=null;S.last=null;save();closeFX();if(stack.includes('eq'))closeV();if(stack.includes('np'))setTimeout(closeV,50);ui();refresh();toast('Kitaplık temizlendi')}
 };
 document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(el&&A_[el.dataset.a])A_[el.dataset.a](el,e)});
 $('#q').oninput=e=>{query=e.target.value.trim().toLowerCase();refresh()};
@@ -1305,7 +1317,7 @@ $('#q').oninput=e=>{query=e.target.value.trim().toLowerCase();refresh()};
   L=await tx('readonly',s=>s.getAll());L.forEach(s=>byId[s.id]=s);
   refresh(1);
   if(S.last&&byId[S.last]){
-    cur=S.last;Q=view().map(x=>x.id);
+    cur=S.last;
     const s=byId[cur];url=URL.createObjectURL(s.blob);A.src=url;
     applyFX();
     ui();peaks(s);
@@ -1313,7 +1325,6 @@ $('#q').oninput=e=>{query=e.target.value.trim().toLowerCase();refresh()};
     ui();
   }
   drawWaveFrame();
-  startWaveLoop();
   if(navigator.storage?.persist)navigator.storage.persist();
   if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
 })();
