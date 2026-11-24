@@ -20,7 +20,6 @@
   --acc:#ffc107;
   --acc-dim:#d4a006;
   --acc-soft:rgba(255,193,7,.14);
-  --line:rgba(255,193,7,.22);
   --txt:#f3f4f6;
   --mut:#8e95a5;
   --p:0;
@@ -36,7 +35,7 @@ svg.f{fill:currentColor}
 /* kitaplık */
 #lib{background:var(--bg);display:flex;flex-direction:column;z-index:1}
 .hd{display:flex;align-items:center;gap:10px;padding:16px 14px 10px 20px;border-bottom:1px solid #ffffff08}
-.hd .lg{width:30px;height:30px}
+.hd .lg{width:30px;height:30px;border-radius:9px;object-fit:cover;flex:none;background:var(--surf2)}
 .hd h1{font-size:20px;font-weight:800;flex:1;letter-spacing:-.2px;color:#fff}
 .hd button{width:42px;height:42px;border-radius:50%;color:var(--mut);transition:background .2s,color .2s,transform .15s}
 .hd button:active{transform:scale(.88);background:var(--acc-soft);color:var(--acc)}
@@ -66,8 +65,8 @@ svg.f{fill:currentColor}
 .btn{background:var(--acc);color:#111;font-weight:800;padding:14px 28px;border-radius:99px;transition:transform .15s,background .2s}
 .btn:active{transform:scale(.94);background:var(--acc-dim)}
 
-/* mini oynatıcı */
-.mini{display:flex;align-items:center;gap:12px;background:var(--surf2);border:1px solid var(--line);padding:8px 10px 11px 8px;position:relative;cursor:pointer;touch-action:pan-x}
+/* mini oynatıcı + sürüklenebilir ilerleme çubuğu */
+.mini{display:flex;align-items:center;gap:12px;background:var(--surf2);border:1px solid #ffffff12;padding:8px 10px 14px 8px;position:relative;cursor:pointer;touch-action:pan-x}
 #mini{position:absolute;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));border-radius:22px;transform:translateY(160%);transition:transform .5s cubic-bezier(.3,1.2,.5,1);box-shadow:0 14px 34px -6px #000000cc;overflow:hidden}
 .has #mini{transform:none}
 .mini .art{width:48px;height:48px;border-radius:12px}
@@ -77,8 +76,12 @@ svg.f{fill:currentColor}
 .mini button{width:42px;height:42px;border-radius:50%}
 .rb{color:var(--mut);position:relative;opacity:.8}.rb.on{color:var(--acc);opacity:1}
 .rb[data-r="2"]::after{content:"1";position:absolute;font-size:9px;font-weight:800;top:50%;left:50%;transform:translate(-50%,-50%)}
-.pl{position:absolute;left:12px;right:12px;bottom:3px;height:3px;border-radius:2px;background:#ffffff1a;overflow:hidden}
-.pl i{position:absolute;inset:0;transform-origin:left;transform:scaleX(var(--p));background:var(--acc)}
+.pl{position:absolute;left:10px;right:10px;bottom:0;height:18px;display:flex;align-items:center;cursor:pointer;touch-action:none;z-index:2}
+.pl .pl-track{position:relative;width:100%;height:4px;border-radius:99px;background:#ffffff1c;overflow:visible;transition:height .15s}
+.pl.scrubbing .pl-track{height:6px}
+.pl i{position:absolute;left:0;top:0;bottom:0;width:calc(var(--p)*100%);border-radius:99px;background:var(--acc);pointer-events:none}
+.pl .pl-thumb{position:absolute;top:50%;left:calc(var(--p)*100%);width:12px;height:12px;border-radius:50%;background:var(--acc);transform:translate(-50%,-50%) scale(.85);box-shadow:0 0 8px rgba(0,0,0,.7);transition:transform .15s;pointer-events:none}
+.pl.scrubbing .pl-thumb,.mini:hover .pl-thumb{transform:translate(-50%,-50%) scale(1.15)}
 .pp .ia{display:none}.playing .pp .ia{display:block}.playing .pp .ip{display:none}
 #mini .pp{background:var(--acc);color:#111}
 
@@ -94,7 +97,7 @@ svg.f{fill:currentColor}
 .npt button{width:64px;height:36px;color:var(--mut)}
 .npt button:active{color:var(--acc)}
 .cw{flex:1;min-height:0;container-type:size;display:grid;place-items:center;padding:8px 24px}
-.cover{width:min(100cqw,100cqh);height:min(100cqw,100cqh);border-radius:30px;overflow:hidden;box-shadow:0 28px 60px -18px #000000e6,0 0 0 1px var(--line);transform:scale(.92);transition:transform .6s cubic-bezier(.3,1.4,.5,1)}
+.cover{width:min(100cqw,100cqh);height:min(100cqw,100cqh);border-radius:30px;overflow:hidden;box-shadow:0 28px 60px -18px #000000e6,0 0 0 1px #ffffff14;transform:scale(.92);transition:transform .6s cubic-bezier(.3,1.4,.5,1)}
 .playing .cover{transform:none}
 .cover .art{width:100%;height:100%;border-radius:0;border:0;font-size:5em}
 .np{padding:0 26px calc(22px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:14px}
@@ -111,9 +114,11 @@ svg.f{fill:currentColor}
   82%,100%{transform:translateX(calc(-100% + var(--mq-box,260px)))}
 }
 
-/* hareketli dalga spektrumu */
-.wave{position:relative;height:78px;touch-action:none;cursor:pointer;margin-top:2px;border-radius:16px;overflow:hidden}
+/* anlaşılır hareketli dalga spektrumu */
+.wave{position:relative;height:82px;touch-action:none;cursor:pointer;margin-top:2px;border-radius:16px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);overflow:hidden}
 #waveCanvas{width:100%;height:100%;display:block}
+.seek-badge{position:absolute;top:6px;transform:translateX(-50%);background:var(--acc);color:#0c0d12;font-size:11px;font-weight:800;padding:2px 7px;border-radius:99px;pointer-events:none;opacity:0;transition:opacity .15s;box-shadow:0 4px 12px rgba(0,0,0,.6)}
+.wave.seeking .seek-badge{opacity:1}
 .tm{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--mut);margin-top:-4px}
 
 /* kontroller */
@@ -134,8 +139,8 @@ svg.f{fill:currentColor}
 .eqtop{display:flex;justify-content:center;align-items:center;padding:8px 0 0;touch-action:none}
 .eqtop button{width:64px;height:34px;color:var(--mut)}
 .eqtop button:active{color:var(--acc)}
-#eq .mini{background:transparent;border:0;border-bottom:1px solid #ffffff10;border-radius:0;padding:8px 20px 12px}
-#eq .mini .pl{left:20px;right:20px;bottom:0;height:3px}
+#eq .mini{background:transparent;border:0;border-bottom:1px solid #ffffff10;border-radius:0;padding:8px 20px 14px}
+#eq .mini .pl{left:20px;right:20px;bottom:0}
 .eqh{display:flex;align-items:center;justify-content:space-between;margin-top:18px}
 .eqh h2{font-size:24px;font-weight:800}
 .sw{width:48px;height:28px;border-radius:99px;background:#ffffff24;position:relative;transition:background .25s}
@@ -158,7 +163,7 @@ svg.f{fill:currentColor}
 /* sheet + toast */
 #sheet{position:fixed;inset:0;max-width:480px;margin:auto;background:#000000a6;opacity:0;visibility:hidden;transition:opacity .3s,visibility 0s .3s;display:flex;align-items:flex-end;z-index:12}
 #sheet.open{opacity:1;visibility:visible;transition-delay:0s}
-.sh{width:100%;background:var(--surf2);border-top:1px solid var(--line);border-radius:28px 28px 0 0;padding:10px 18px calc(22px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .4s cubic-bezier(.2,.85,.2,1);max-height:82%;overflow:auto}
+.sh{width:100%;background:var(--surf2);border-top:1px solid #ffffff14;border-radius:28px 28px 0 0;padding:10px 18px calc(22px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .4s cubic-bezier(.2,.85,.2,1);max-height:82%;overflow:auto}
 #sheet.open .sh{transform:none}
 .sh::before{content:"";display:block;width:40px;height:4px;border-radius:2px;background:#ffffff33;margin:0 auto 14px}
 .sh h3{font-size:18px;margin:4px 6px 12px;color:#fff}
@@ -207,7 +212,7 @@ svg.f{fill:currentColor}
 <main id="lib" class="scr">
   <div class="sa"></div>
   <div class="hd">
-    <svg class="lg" viewBox="0 0 48 48"><defs><linearGradient id="lgg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#222634"/><stop offset="1" stop-color="#0d0f14"/></linearGradient></defs><rect width="48" height="48" rx="14" fill="url(#lgg)" stroke="#ffc10744"/><g fill="#ffc107"><rect x="10" y="20" width="4.500" height="14" rx="2.250"/><rect x="17.500" y="12" width="4.500" height="22" rx="2.250"/><rect x="25" y="16" width="4.500" height="18" rx="2.250"/><rect x="32.500" y="23" width="4.500" height="11" rx="2.250"/></g></svg>
+    <img class="lg" src="icon-192.png" alt="KD Player" onerror="this.src='icon-180.png'">
     <h1>KD Player</h1>
     <button data-a="search" aria-label="Ara"><svg class="i"><use href="#i-search"/></svg></button>
     <button data-a="sort" aria-label="Sırala"><svg class="i"><use href="#i-sort"/></svg></button>
@@ -221,7 +226,7 @@ svg.f{fill:currentColor}
     <div class="mt"><b class="m-t"></b><span class="m-a"></span></div>
     <button class="rb" data-a="rep" aria-label="Tekrarla"><svg class="i"><use href="#i-rep"/></svg></button>
     <button class="pp" data-a="pp" aria-label="Oynat / duraklat"><svg class="i f ip"><use href="#i-play"/></svg><svg class="i f ia"><use href="#i-pause"/></svg></button>
-    <div class="pl"><i></i></div>
+    <div class="pl" id="miniScrub"><div class="pl-track"><i></i><span class="pl-thumb"></span></div></div>
   </div>
 </main>
 
@@ -233,7 +238,10 @@ svg.f{fill:currentColor}
     <div class="meta">
       <div class="tt"><h2 class="m-t" id="np-title"></h2><div class="ar m-a"></div></div>
     </div>
-    <div class="wave" id="wave"><canvas id="waveCanvas"></canvas></div>
+    <div class="wave" id="wave">
+      <canvas id="waveCanvas"></canvas>
+      <div class="seek-badge" id="seekBadge">0:00</div>
+    </div>
     <div class="tm"><span id="tc">0:00</span><span id="td">0:00</span></div>
     <div class="ctl">
       <button class="sm" data-a="prev" aria-label="Önceki"><svg class="i f"><use href="#i-prev"/></svg></button>
@@ -252,7 +260,7 @@ svg.f{fill:currentColor}
     <div class="art m-art"></div>
     <div class="mt"><b class="m-t"></b><span class="m-a"></span></div>
     <button class="pp" data-a="pp" aria-label="Oynat / duraklat"><svg class="i f ip"><use href="#i-play"/></svg><svg class="i f ia"><use href="#i-pause"/></svg></button>
-    <div class="pl"><i></i></div>
+    <div class="pl"><div class="pl-track"><i></i><span class="pl-thumb"></span></div></div>
   </div>
   <div class="eqs">
     <div class="eqh"><h2>Ekolayzer</h2><button class="sw on" id="eqsw" data-a="eqtog" aria-label="Ekolayzeri aç / kapat"></button></div>
@@ -433,7 +441,7 @@ function prev(){
 }
 const toggle=()=>{if(!cur)return;initAudio();if(ctx.state==='suspended')ctx.resume();A.paused?A.play():A.pause()};
 
-/* hareketli dalga spektrumu (canvas) + anında seek */
+/* anlaşılır hareketli dalga spektrumu (canvas) + anında seek */
 const PK={},WAVE_N=64;
 const waveCanvas=$('#waveCanvas'),wctx=waveCanvas.getContext('2d');
 let basePeaks=Array(WAVE_N).fill(.25),wavePhase=0,waveRaf=null;
@@ -485,18 +493,28 @@ function drawWaveFrame(){
   const d=A.duration||byId[cur]?.dur||0;
   const t=seeking?(seekRatio*d):A.currentTime;
   const progRatio=d?Math.max(0,Math.min(1,t/d)):0;
+  const splitX=progRatio*w;
 
   const cy=h*0.5;
-  const lines=7; // görseldeki gibi çok katmanlı dalga iplikleri
+  const lines=7;
+
+  // çalınan bölgede hafif zemin vurgusu
+  if(splitX>0){
+    const bgGrad=wctx.createLinearGradient(0,0,splitX,0);
+    bgGrad.addColorStop(0,'rgba(255,193,7,0.02)');
+    bgGrad.addColorStop(1,'rgba(255,193,7,0.09)');
+    wctx.fillStyle=bgGrad;
+    wctx.fillRect(0,0,splitX,h);
+  }
 
   for(let l=0;l<lines;l++){
-    const lNorm=(l/(lines-1))-0.5; // -0.5 .. +0.5
+    const lNorm=(l/(lines-1))-0.5;
     const lScale=1 - Math.abs(lNorm)*0.72;
     wctx.beginPath();
 
     for(let x=0;x<=w;x+=3){
       const u=x/w;
-      const env=Math.pow(Math.sin(u*Math.PI),1.25); // uçlarda incelip ortada dalgalanan zarf
+      const env=Math.pow(Math.sin(u*Math.PI),1.25);
       const idx=Math.min(WAVE_N-1,Math.floor(u*(WAVE_N-1)));
       const pk=basePeaks[idx]||0.25;
 
@@ -507,32 +525,52 @@ function drawWaveFrame(){
       }
 
       const amp=playing
-        ?(h*0.36*env*(0.35*pk + 0.75*live)*lScale)
+        ?(h*0.35*env*(0.35*pk + 0.75*live)*lScale)
         :(h*0.20*env*pk*lScale);
 
       const wave1=Math.sin(u*9.5 - wavePhase + l*0.42);
       const wave2=Math.cos(u*17.0 + wavePhase*0.7 - l*0.25)*0.35;
-      const y=cy + (wave1 + wave2)*amp + lNorm*(playing?10:4)*env;
+      const y=cy + (wave1 + wave2)*amp + lNorm*(playing?9:4)*env;
 
       if(x===0)wctx.moveTo(x,y);
       else wctx.lineTo(x,y);
     }
 
-    const active=l===Math.floor(lines/2);
-    if(active){
+    const isCenter=l===Math.floor(lines/2);
+    if(isCenter){
       const grad=wctx.createLinearGradient(0,0,w,0);
-      grad.addColorStop(0,'rgba(255,193,7,0.18)');
-      grad.addColorStop(Math.max(0.01,progRatio-0.01),'rgba(255,193,7,0.95)');
-      grad.addColorStop(Math.min(0.99,progRatio+0.01),'rgba(255,193,7,0.32)');
-      grad.addColorStop(1,'rgba(255,193,7,0.12)');
+      grad.addColorStop(0,'rgba(255,193,7,0.75)');
+      grad.addColorStop(Math.max(0.01,progRatio),'rgba(255,193,7,1)');
+      grad.addColorStop(Math.min(0.99,progRatio+0.004),'rgba(255,255,255,0.22)');
+      grad.addColorStop(1,'rgba(255,255,255,0.14)');
       wctx.strokeStyle=grad;
-      wctx.lineWidth=2.2;
+      wctx.lineWidth=seeking?2.8:2.2;
     }else{
-      const alpha=playing?(0.14 + 0.16*lScale):(0.08 + 0.08*lScale);
+      const alpha=playing?(0.14 + 0.16*lScale):(0.07 + 0.07*lScale);
       wctx.strokeStyle=`rgba(255,193,7,${alpha.toFixed(3)})`;
       wctx.lineWidth=1.1;
     }
     wctx.stroke();
+  }
+
+  // mevcut konum çizgisi (playhead) ve yuvarlak gösterge
+  if(d>0||seeking){
+    wctx.save();
+    wctx.strokeStyle=seeking?'#fff':'rgba(255,193,7,0.9)';
+    wctx.lineWidth=seeking?2.4:1.6;
+    wctx.beginPath();
+    wctx.moveTo(splitX,6);
+    wctx.lineTo(splitX,h-6);
+    wctx.stroke();
+
+    wctx.fillStyle='#ffc107';
+    wctx.beginPath();
+    wctx.arc(splitX,cy,seeking?6.5:4.5,0,Math.PI*2);
+    wctx.fill();
+    wctx.lineWidth=2;
+    wctx.strokeStyle='#08090c';
+    wctx.stroke();
+    wctx.restore();
   }
 }
 
@@ -551,7 +589,18 @@ function prog(){
   const ratio=d?Math.max(0,Math.min(1,t/d)):0;
   document.documentElement.style.setProperty('--p',ratio);
   const sec=Math.floor(t);
-  if(sec!==ls){ls=sec;$('#tc').textContent=fmt(t);$('#td').textContent=fmt(d)}
+  if(sec!==ls||seeking){
+    ls=sec;
+    $('#tc').textContent=fmt(t);
+    $('#td').textContent=fmt(d);
+    if(seeking){
+      const badge=$('#seekBadge');
+      const rect=w.getBoundingClientRect();
+      const clampedX=Math.max(26,Math.min(rect.width-26,ratio*rect.width));
+      badge.style.left=clampedX+'px';
+      badge.textContent=fmt(t);
+    }
+  }
 }
 
 function loop(){
@@ -564,7 +613,7 @@ function loop(){
   })();
 }
 
-/* anında saniye geçişi */
+/* dalga spektrumunda anında saniye geçişi */
 const w=$('#wave');
 function calcRatio(e){
   const r=w.getBoundingClientRect();
@@ -586,9 +635,10 @@ w.onpointerdown=e=>{
   e.stopPropagation();
   w.setPointerCapture(e.pointerId);
   seeking=true;
+  w.classList.add('seeking');
   seekRatio=calcRatio(e);
   prog();
-  commitSeek(seekRatio);
+  drawWaveFrame();
   w.onpointermove=ev=>{
     seekRatio=calcRatio(ev);
     prog();
@@ -599,8 +649,42 @@ w.onpointerup=w.onpointercancel=e=>{
   if(!seeking)return;
   w.onpointermove=null;
   seeking=false;
+  w.classList.remove('seeking');
   commitSeek(seekRatio);
 };
+
+/* mini oynatıcı <div class="pl"> üzerinden sürükleyerek ilerletme */
+$$('.pl').forEach(pl=>{
+  let pScrub=false;
+  const getR=ev=>{
+    const r=pl.getBoundingClientRect();
+    return Math.max(0,Math.min(1,(ev.clientX-r.left)/r.width));
+  };
+  const applyR=ev=>{
+    const d=A.duration||byId[cur]?.dur||0;
+    const ratio=getR(ev);
+    document.documentElement.style.setProperty('--p',ratio);
+    if(d)$('#tc').textContent=fmt(ratio*d);
+    return ratio;
+  };
+  pl.onpointerdown=e=>{
+    e.stopPropagation();
+    const d=A.duration||byId[cur]?.dur||0;
+    if(!d)return;
+    pl.setPointerCapture(e.pointerId);
+    pScrub=true;seeking=true;
+    pl.classList.add('scrubbing');
+    seekRatio=applyR(e);
+    pl.onpointermove=ev=>{seekRatio=applyR(ev)};
+  };
+  pl.onpointerup=pl.onpointercancel=e=>{
+    if(!pScrub)return;
+    pl.onpointermove=null;
+    pScrub=false;seeking=false;
+    pl.classList.remove('scrubbing');
+    commitSeek(seekRatio);
+  };
+});
 
 /* uzun şarkı isimleri için tek satır kayan yazı */
 function applyMarquee(el,text){
@@ -684,7 +768,7 @@ addEventListener('popstate',()=>{
   const mini=$('#mini');
   let sy=0,sx=0;
   mini.addEventListener('touchstart',e=>{
-    if(e.target.closest('button'))return;
+    if(e.target.closest('button,.pl'))return;
     sy=e.touches[0].clientY;
     sx=e.touches[0].clientX;
   },{passive:true});
@@ -736,7 +820,7 @@ function bindDownSwipe(elId,ignoreSel){
   });
 }
 bindDownSwipe('np','#wave,.ctl,.bot,.eqbtn');
-bindDownSwipe('eq','.trk,.pres,.sw');
+bindDownSwipe('eq','.trk,.pres,.sw,.pl');
 
 /* ekolayzer arayüzü */
 function buildEQ(){
