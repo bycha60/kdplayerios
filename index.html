@@ -122,10 +122,23 @@ svg.f{fill:currentColor}
   82%,100%{transform:translateX(calc(-100% + var(--mq-box,260px)))}
 }
 
-/* normal sarı ve kırmızı dalga spektrumu */
-.wave{position:relative;height:78px;touch-action:none;cursor:pointer;margin-top:2px;border-radius:16px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);overflow:hidden}
+/* Temaya uyumlu buzlu cam 3B dalga spektrumu */
+.wave{
+  position:relative;
+  height:88px;
+  touch-action:none;
+  cursor:pointer;
+  margin-top:2px;
+  border-radius:18px;
+  background:linear-gradient(180deg, rgba(24,27,36,.52) 0%, rgba(17,19,26,.36) 100%);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.07);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+  overflow:hidden;
+}
 #waveCanvas{width:100%;height:100%;display:block}
-.seek-badge{position:absolute;top:6px;transform:translateX(-50%);background:var(--acc);color:#090506;font-size:11px;font-weight:800;padding:2px 7px;border-radius:99px;pointer-events:none;opacity:0;transition:opacity .15s;box-shadow:0 4px 12px rgba(0,0,0,.6)}
+.seek-badge{position:absolute;top:6px;transform:translateX(-50%);background:var(--acc);color:#111;font-size:11px;font-weight:800;padding:2px 8px;border-radius:99px;pointer-events:none;opacity:0;transition:opacity .15s;box-shadow:0 4px 12px rgba(0,0,0,.65)}
 .wave.seeking .seek-badge{opacity:1}
 .tm{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--mut);margin-top:-4px}
 
@@ -461,7 +474,7 @@ function applyFX(){
   prog();
 }
 
-/* ID3 etiketleri (başlık, sanatçı, albüm, kapak görseli) */
+/* ID3 etiketleri */
 function txt(d){
   if(!d||!d.length)return'';
   const e=d[0];let b=d.subarray(1),c='windows-1254';
@@ -605,10 +618,10 @@ function prev(){
 }
 const toggle=()=>{if(!cur)return;initAudio();if(ctx.state==='suspended')ctx.resume();A.paused?A.play():A.pause()};
 
-/* normal sarı ve kırmızı dalga spektrumu (canvas) + anında seek */
-const PK={},WAVE_N=72;
+/* Temaya uyumlu 3B kurdele dalga spektrumu (canvas) */
+const PK={},WAVE_N=64;
 const waveCanvas=$('#waveCanvas'),wctx=waveCanvas.getContext('2d');
-let basePeaks=Array(WAVE_N).fill(.35);
+let basePeaks=Array(WAVE_N).fill(.35),wavePhase=0,waveRaf=null,lastFrameTs=0;
 
 function resizeWave(){
   const r=waveCanvas.parentElement.getBoundingClientRect();
@@ -616,7 +629,7 @@ function resizeWave(){
   waveCanvas.width=Math.max(1,Math.floor(r.width*dpr));
   waveCanvas.height=Math.max(1,Math.floor(r.height*dpr));
   wctx.setTransform(dpr,0,0,dpr,0,0);
-  drawWaveFrame();
+  drawWaveFrame(performance.now());
 }
 addEventListener('resize',resizeWave);
 
@@ -630,7 +643,7 @@ function pseudo(s){
 
 async function peaks(s){
   basePeaks=PK[s.id]||pseudo(s);
-  drawWaveFrame();
+  drawWaveFrame(performance.now());
   if(PK[s.id]||s.blob.size>30e6)return;
   try{
     const b=await new OfflineAudioContext(1,1,44100).decodeAudioData(await s.blob.arrayBuffer());
@@ -641,18 +654,85 @@ async function peaks(s){
       o.push(m);
     }
     const mx=Math.max(...o)||1;
-    PK[s.id]=o.map(v=>.16+.84*Math.pow(v/mx,.78));
+    PK[s.id]=o.map(v=>.18+.82*Math.pow(v/mx,.78));
     if(cur===s.id){
       basePeaks=PK[s.id];
-      drawWaveFrame();
+      drawWaveFrame(performance.now());
     }
   }catch(e){}
 }
 
-function drawWaveFrame(){
+function samplePeak(u){
+  const pos=clamp(u,0,1)*(WAVE_N-1);
+  const i0=Math.floor(pos);
+  const i1=Math.min(WAVE_N-1,i0+1);
+  const frac=pos-i0;
+  return (basePeaks[i0]||0.3)*(1-frac) + (basePeaks[i1]||0.3)*frac;
+}
+
+/* KD Player altın sarısı / kehribar / sıcak beyaz tema gradyanı */
+function makeThemeGradient(w,alpha,active){
+  const g=wctx.createLinearGradient(0,0,w,0);
+  if(active){
+    g.addColorStop(0.00,`rgba(212,160,6,${alpha})`);
+    g.addColorStop(0.25,`rgba(255,193,7,${alpha})`);
+    g.addColorStop(0.55,`rgba(255,224,130,${alpha})`);
+    g.addColorStop(0.80,`rgba(255,179,0,${alpha})`);
+    g.addColorStop(1.00,`rgba(255,248,225,${alpha})`);
+  }else{
+    g.addColorStop(0.00,`rgba(142,149,165,${alpha})`);
+    g.addColorStop(0.50,`rgba(255,193,7,${alpha*0.75})`);
+    g.addColorStop(1.00,`rgba(142,149,165,${alpha})`);
+  }
+  return g;
+}
+
+function renderRibbonLines(w,h,cy,phase,strokeStyle,lineW){
+  const strands=22;
+  const stepX=3;
+  wctx.strokeStyle=strokeStyle;
+  wctx.lineWidth=lineW;
+
+  for(let s=0;s<strands;s++){
+    const t=s/(strands-1);
+    const spread=(t-0.5)*2;
+    const strandPhase=spread*1.45;
+    const twistFreq=2.6 + spread*0.22;
+
+    wctx.beginPath();
+    for(let x=0;x<=w;x+=stepX){
+      const u=x/w;
+      const pk=samplePeak(u);
+      const env=0.32 + 0.68*Math.pow(Math.sin(u*Math.PI),0.65);
+
+      const carrier=Math.sin(u*Math.PI*twistFreq - phase + strandPhase);
+      const harmonic=Math.sin(u*Math.PI*4.8 - phase*1.35 - strandPhase*0.8)*0.32;
+      const ribbonTwist=Math.cos(u*Math.PI*2.1 - phase*0.75)*spread*0.30;
+
+      const amp=h*0.37*(0.40 + 0.60*pk)*env;
+      const y=cy + (carrier + harmonic + ribbonTwist)*amp;
+
+      if(x===0)wctx.moveTo(x,y);
+      else wctx.lineTo(x,y);
+    }
+    wctx.stroke();
+  }
+}
+
+function drawWaveFrame(ts=0){
   const dpr=Math.min(window.devicePixelRatio||1,2);
   const w=waveCanvas.width/dpr,h=waveCanvas.height/dpr;
   if(w<=2||h<=2)return;
+
+  if(lastFrameTs){
+    const dt=Math.min(0.05,(ts-lastFrameTs)/1000);
+    if(!A.paused&&!!cur){
+      wavePhase+=dt*2.4;
+    }
+  }
+  lastFrameTs=ts;
+
+  /* Şeffaf tuval: alttaki buzlu cam & bulanık kapak arka planı doğal görünür */
   wctx.clearRect(0,0,w,h);
 
   const d=A.duration||byId[cur]?.dur||0;
@@ -661,55 +741,59 @@ function drawWaveFrame(){
   const splitX=progRatio*w;
   const cy=h*0.5;
 
-  const padX=10;
-  const usableW=Math.max(10,w-padX*2);
-  const step=usableW/WAVE_N;
-  const barW=Math.max(2,step*0.58);
+  /* 1) Henüz çalınmayan kısım (temaya uyumlu loş gümüş-altın ağ) */
+  wctx.save();
+  wctx.beginPath();
+  wctx.rect(splitX,0,Math.max(0,w-splitX),h);
+  wctx.clip();
+  renderRibbonLines(w,h,cy,wavePhase,makeThemeGradient(w,0.22,false),0.95);
+  wctx.restore();
 
-  // çalınan ve kalan kısımlar için sarı-kırmızı renk geçişleri
-  const activeGrad=wctx.createLinearGradient(padX,0,w-padX,0);
-  activeGrad.addColorStop(0,'#dc2626');
-  activeGrad.addColorStop(0.5,'#ef4444');
-  activeGrad.addColorStop(1,'#ffc107');
-
-  const dimGrad=wctx.createLinearGradient(padX,0,w-padX,0);
-  dimGrad.addColorStop(0,'rgba(220,38,38,0.24)');
-  dimGrad.addColorStop(1,'rgba(255,193,7,0.22)');
-
-  for(let i=0;i<WAVE_N;i++){
-    const x=padX + i*step + (step-barW)*0.5;
-    const cx=x+barW*0.5;
-    const pk=basePeaks[i]||0.25;
-    const barH=Math.max(5,pk*(h*0.76));
-    const y=cy - barH*0.5;
-    const r=Math.min(barW*0.5,3);
-
-    wctx.fillStyle=cx<=splitX?activeGrad:dimGrad;
+  /* 2) Çalınan kısım (parlak altın sarısı & kehribar 3B kurdele ağı) */
+  if(splitX>0){
+    wctx.save();
     wctx.beginPath();
-    if(wctx.roundRect)wctx.roundRect(x,y,barW,barH,r);
-    else wctx.rect(x,y,barW,barH);
-    wctx.fill();
+    wctx.rect(0,0,splitX,h);
+    wctx.clip();
+    renderRibbonLines(w,h,cy,wavePhase,makeThemeGradient(w,0.85,true),1.15);
+    wctx.restore();
   }
 
-  // ilerleme çizgisi
+  /* 3) Konum çizgisi (playhead) */
   if(d>0||seeking){
     wctx.save();
-    wctx.strokeStyle=seeking?'#fff':'#ffc107';
-    wctx.lineWidth=seeking?2.2:1.6;
+    const lineGrad=wctx.createLinearGradient(0,6,0,h-6);
+    lineGrad.addColorStop(0,'rgba(255,193,7,0)');
+    lineGrad.addColorStop(0.5,'rgba(255,224,130,0.85)');
+    lineGrad.addColorStop(1,'rgba(255,193,7,0)');
+    wctx.strokeStyle=seeking?'#ffffff':lineGrad;
+    wctx.lineWidth=seeking?2:1.5;
     wctx.beginPath();
     wctx.moveTo(splitX,6);
     wctx.lineTo(splitX,h-6);
     wctx.stroke();
 
-    wctx.fillStyle='#ef4444';
+    wctx.shadowColor='rgba(255,193,7,0.75)';
+    wctx.shadowBlur=8;
+    wctx.fillStyle='#ffc107';
     wctx.beginPath();
-    wctx.arc(splitX,cy,seeking?6:4.2,0,Math.PI*2);
+    wctx.arc(splitX,cy,seeking?5:3.6,0,Math.PI*2);
     wctx.fill();
-    wctx.lineWidth=2;
-    wctx.strokeStyle='#ffc107';
-    wctx.stroke();
     wctx.restore();
   }
+}
+
+function startWaveLoop(){
+  if(waveRaf)return;
+  lastFrameTs=performance.now();
+  (function tick(now){
+    drawWaveFrame(now);
+    if(!A.paused||seeking){
+      waveRaf=requestAnimationFrame(tick);
+    }else{
+      waveRaf=null;
+    }
+  })(lastFrameTs);
 }
 
 let ls=-1,lp=false,seeking=false,seekRatio=0;
@@ -721,7 +805,7 @@ function prog(){
   const t=rawT/sp;
   const ratio=rawD?Math.max(0,Math.min(1,rawT/rawD)):0;
   document.documentElement.style.setProperty('--p',ratio);
-  drawWaveFrame();
+  if(A.paused)drawWaveFrame(performance.now());
   const sec=Math.floor(t);
   if(sec!==ls||seeking){
     ls=sec;
@@ -782,6 +866,7 @@ w.onpointerup=w.onpointercancel=e=>{
   seeking=false;
   w.classList.remove('seeking');
   commitSeek(seekRatio);
+  if(!A.paused)startWaveLoop();
 };
 
 /* mini oynatıcı <div class="pl"> üzerinden sürükleyerek ilerletme */
@@ -859,8 +944,8 @@ function ui(){
     });
   }
 }
-A.onplay=()=>{ui();loop()};
-A.onpause=()=>{ui();drawWaveFrame()};
+A.onplay=()=>{ui();loop();startWaveLoop()};
+A.onpause=()=>{ui();drawWaveFrame(performance.now())};
 A.onended=()=>next(true);
 A.onloadedmetadata=()=>{applyFX();prog()};
 A.ontimeupdate=()=>{if(!lp&&!seeking)prog()};
@@ -1029,6 +1114,7 @@ function openV(id){
   el.classList.add('open');
   if(id==='np'){
     resizeWave();
+    if(!A.paused)startWaveLoop();
     setTimeout(()=>applyMarquee($('#np-title'),byId[cur]?.title||''),60);
   }
   history.pushState({v:id},'');
@@ -1324,7 +1410,7 @@ $('#q').oninput=e=>{query=e.target.value.trim().toLowerCase();refresh()};
   }else{
     ui();
   }
-  drawWaveFrame();
+  drawWaveFrame(performance.now());
   if(navigator.storage?.persist)navigator.storage.persist();
   if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>{});
 })();
